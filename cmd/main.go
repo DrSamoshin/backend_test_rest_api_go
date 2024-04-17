@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	todo "github.com/ssamoshin-ms/golang_test"
 	"github.com/ssamoshin-ms/golang_test/pkg/handler"
@@ -14,12 +14,13 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := InitConfig(); err != nil {
-		log.Fatalf("error init configs: %s", err.Error())
+		logrus.Fatalf("error init configs: %s", err.Error())
 	}
 
 	if err := gotenv.Load(); err != nil {
-		log.Fatalf("error loading env variables: %s", err.Error())
+		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -31,7 +32,7 @@ func main() {
 		SSLMode:  viper.GetString("db.sslmade"),
 	})
 	if err != nil {
-		log.Fatalf("failed to init db: %s", err.Error())
+		logrus.Fatalf("failed to init db: %s", err.Error())
 	}
 
 	repos := repository.NewRepository(db)
@@ -40,7 +41,7 @@ func main() {
 
 	srv := new(todo.Server)
 	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		log.Fatalf("error occurred while running http server: %s", err.Error())
+		logrus.Fatalf("error occurred while running http server: %s", err.Error())
 	}
 }
 
